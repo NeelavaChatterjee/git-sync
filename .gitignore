@@ -1,0 +1,29 @@
+# Custom #
+##########
+
+
+# Compiled source #
+###################
+*.dll
+*.exe
+*.exe~
+*.out
+*.o
+*.i
+*.s
+*.so
+*.dylib
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs generated files #
+########################
+.vscode
