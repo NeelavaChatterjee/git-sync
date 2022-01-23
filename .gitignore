@@ -27,3 +27,7 @@ Thumbs.db
 # IDEs generated files #
 ########################
 .vscode
+.idea
+
+# env file
+.env
