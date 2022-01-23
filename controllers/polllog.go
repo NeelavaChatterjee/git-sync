@@ -26,6 +26,7 @@ func GetAllPollLogs(w http.ResponseWriter, r *http.Request) {
 }
 
 // TODO Fetches filtered poll logs based on repo and branch from db
+// Filters to be considered: repository, branch, time frame
 func GetFilteredPollLogs(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	w.Header().Set("Content-Type", "Application/json")
