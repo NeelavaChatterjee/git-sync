@@ -1,4 +1,4 @@
-package config
+package database
 
 import (
 	"fmt"
@@ -10,13 +10,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func DatabaseConnect() *gorm.DB {
+var Db *gorm.DB
+
+func Connect() {
 	conn_str := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_ADDRESS"), os.Getenv("DB_PORT"), os.Getenv("DB_DATABASE"))
 	db, err := gorm.Open(mysql.Open(conn_str), &gorm.Config{})
 	if err != nil {
 		log.Panicln(err)
 	}
 
+	Db = db
 	db.AutoMigrate(&models.Track{}, &models.CommitHistory{}, &models.PollLogs{})
-	return db
 }
