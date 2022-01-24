@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/NeelavaChatterjee/git-sync/database"
+	"github.com/NeelavaChatterjee/git-sync/utilities"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
@@ -34,7 +34,8 @@ func main() {
 	fmt.Println("Database is being initialized")
 
 	// Connect to database
-	database.Connect()
+	// TODO database.Connect()
+	utilities.GetRepositories()
 
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for the existing connections to finish - e.g. 15s or 1m")
