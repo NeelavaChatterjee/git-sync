@@ -1,48 +1,44 @@
 package controllers
 
 import (
-	"encoding/json"
-	"net/http"
-
 	"github.com/NeelavaChatterjee/git-sync/database"
 	"github.com/NeelavaChatterjee/git-sync/models"
 )
 
-//TODO
-
-// create a poll log
-// delete a poll log(not to be used)
-// fetch all poll logs
-// fetch poll logs for a repo and branch
-// think about adding pagination
-
 // Fetches all poll logs from database
-func GetAllPollLogs(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json")
+func FetchAllPollLogs() ([]models.PollLogs, error) {
 	var poll_logs []models.PollLogs
-	database.Db.Find(&poll_logs)
-	json.NewEncoder(w).Encode(&poll_logs)
+	r := database.Db.Find(&poll_logs)
+	if r.Error != nil {
+		return nil, r.Error
+	}
+	return poll_logs, nil
 }
 
-// TODO Fetches filtered poll logs based on repo and branch from db
-// Filters to be considered: repository, branch, time frame
-func GetFilteredPollLogs(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "Application/json")
-
+// Fetches filtered poll logs based on repo and branch from db
+// TODO Filters yet to be considered: time frame
+func FetchFilteredPollLogs(track_id uint64) ([]models.PollLogs, error) {
+	var filtered_poll_logs []models.PollLogs
+	r := database.Db.Where(&models.PollLogs{TrackID: track_id}).Find(&filtered_poll_logs)
+	if r.Error != nil {
+		return nil, r.Error
+	}
+	return filtered_poll_logs, nil
 }
 
-// TODO Creates a new Poll Log entry in db
-func CreatePollLog(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "Application/json")
-
+// Creates a new Poll Log entry in db
+func CreatePollLog(poll_log_entry *models.PollLogs) error {
+	r := database.Db.Create(poll_log_entry)
+	if r.Error != nil {
+		return r.Error
+	}
+	return nil
 }
 
-// TODO Deletes a Poll Log from db based on its id.
-func DeletePollLogById(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "Application/json")
-
+func DeletePollLogById(poll_log_id uint64) error {
+	r := database.Db.Delete(&models.PollLogs{}, poll_log_id)
+	if r.Error != nil {
+		return r.Error
+	}
+	return nil
 }
