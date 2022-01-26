@@ -82,6 +82,7 @@ func GetBranches(owner string, repo string) {
 
 // Function to fetch commits from a repo
 // ref: https://pkg.go.dev/github.com/google/go-github/v42/github#RepositoriesService.ListCommits
+// TODO Get better data formats
 func GetCommits(owner string, repo string) {
 	commits, _, err := githubClient.Repositories.ListCommits(
 		context.Background(),
