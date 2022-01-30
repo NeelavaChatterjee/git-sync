@@ -8,9 +8,9 @@ import (
 // Fetches all poll logs from database
 func FetchAllPollLogs() ([]models.PollLogs, error) {
 	var poll_logs []models.PollLogs
-	r := database.Db.Find(&poll_logs)
-	if r.Error != nil {
-		return nil, r.Error
+	result := database.Db.Find(&poll_logs)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return poll_logs, nil
 }
@@ -19,26 +19,35 @@ func FetchAllPollLogs() ([]models.PollLogs, error) {
 // TODO Filters yet to be considered: time frame
 func FetchFilteredPollLogs(track_id uint64) ([]models.PollLogs, error) {
 	var filtered_poll_logs []models.PollLogs
-	r := database.Db.Where(&models.PollLogs{TrackID: track_id}).Find(&filtered_poll_logs)
-	if r.Error != nil {
-		return nil, r.Error
+	result := database.Db.Where(&models.PollLogs{TrackID: track_id}).Find(&filtered_poll_logs)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return filtered_poll_logs, nil
 }
 
+func FetchLastPollLog(track_id uint64) (*models.PollLogs, error) {
+	var last_poll_log models.PollLogs
+	result := database.Db.Where(&models.PollLogs{TrackID: track_id}).Last(&last_poll_log)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &last_poll_log, nil
+}
+
 // Creates a new Poll Log entry in db
 func CreatePollLog(poll_log_entry *models.PollLogs) error {
-	r := database.Db.Create(poll_log_entry)
-	if r.Error != nil {
-		return r.Error
+	result := database.Db.Create(poll_log_entry)
+	if result.Error != nil {
+		return result.Error
 	}
 	return nil
 }
 
 func DeletePollLogById(poll_log_id uint64) error {
-	r := database.Db.Delete(&models.PollLogs{}, poll_log_id)
-	if r.Error != nil {
-		return r.Error
+	result := database.Db.Delete(&models.PollLogs{}, poll_log_id)
+	if result.Error != nil {
+		return result.Error
 	}
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 type Track struct {
 	gorm.Model   `json:"model"`
 	ID           uint64    `json:"id"`
+	Owner        string    `json:"owner"`
 	Repository   string    `json:"repository"`
 	Branch       string    `json:"branch"`
 	PollInterval time.Time `json:"poll_interval"`

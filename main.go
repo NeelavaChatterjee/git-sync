@@ -10,7 +10,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/NeelavaChatterjee/git-sync/database"
+	"github.com/NeelavaChatterjee/git-sync/routes"
+	"github.com/NeelavaChatterjee/git-sync/utilities"
 	"github.com/joho/godotenv"
 )
 
@@ -32,9 +34,13 @@ func main() {
 	log.SetOutput(f)
 	fmt.Println("Database is being initialized")
 
+	utilities.Initialize()
+	utilities.Cron.Start()
+	defer utilities.Cron.Stop()
+
 	// Connect to database
 	// TODO Remove comments to use
-	// database.Connect()
+	database.Connect()
 	// utilities.GetBranches("platform9", "pf9-kube")
 	// utilities.GetCommits("platform9", "pf9-kube")
 	// utilities.GetCommit("platform9", "pf9-kube", "897a05fabf282cdbdc5828b804cc216042172dd8")
@@ -43,7 +49,8 @@ func main() {
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for the existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	r := mux.NewRouter()
+	// r := mux.NewRouter()
+	router := routes.Router()
 
 	srv := &http.Server{
 		Addr: "127.0.0.1:8080",
@@ -51,7 +58,7 @@ func main() {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      r,
+		Handler:      router,
 	}
 
 	// Run our server in a goroutine so that it doesn't block
@@ -79,5 +86,4 @@ func main() {
 	// to finalize based on context cancellation.
 	log.Println("shutting down")
 	os.Exit(0)
-
 }

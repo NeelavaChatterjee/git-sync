@@ -12,10 +12,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// contains methods and functions required to operate with the github apis
-// and getting the stuff like authentication done
-// that might be too big for a single controller to handle.
-
 var githubClient *github.Client
 
 type TokenSource struct {
@@ -42,16 +38,16 @@ func init() {
 	oauthClient := oauth2.NewClient(ctx, tokenSource)
 	githubClient = github.NewClient(oauthClient)
 
-	commitInfo, _, err := githubClient.Repositories.ListCommits(ctx, "NeelavaChatterjee", "mytracker", nil)
-	if err != nil {
-		fmt.Printf("Problem in commit information %v\n", err)
-		os.Exit(1)
-	}
+	// commitInfo, _, err := githubClient.Repositories.ListCommits(ctx, "NeelavaChatterjee", "mytracker", nil)
+	// if err != nil {
+	// 	fmt.Printf("Problem in commit information %v\n", err)
+	// 	os.Exit(1)
+	// }
 
-	fmt.Printf("%+v\n", commitInfo[0])
+	// fmt.Printf("%+v\n", commitInfo[0])
 }
 
-// Does not work becauseyou need to authenticate with installation access token
+// Does not work because you need to authenticate with installation access token
 func GetRepositories() {
 	repos, _, err := githubClient.Apps.ListRepos(context.Background(), nil)
 	if err != nil {
@@ -83,15 +79,15 @@ func GetBranches(owner string, repo string) {
 // Function to fetch commits from a repo
 // ref: https://pkg.go.dev/github.com/google/go-github/v42/github#RepositoriesService.ListCommits
 // TODO Get better data formats
-func GetCommits(owner string, repo string) {
+func GetCommits(owner string, repo string, branch string, since time.Time, until time.Time) []*github.RepositoryCommit {
 	commits, _, err := githubClient.Repositories.ListCommits(
 		context.Background(),
 		owner,
 		repo,
 		&github.CommitsListOptions{
-			SHA:   "atherton",
-			Since: time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local),
-			Until: time.Date(2022, 1, 15, 0, 0, 0, 0, time.Local),
+			SHA:   branch,
+			Since: since,
+			Until: until,
 		},
 	)
 	if err != nil {
@@ -99,18 +95,10 @@ func GetCommits(owner string, repo string) {
 		os.Exit(1)
 	}
 
-	for i, commit := range commits {
-		fmt.Println(
-			i,
-			commit.GetSHA(),
-			/* commit.Commit.GetMessage(), */
-			commit.Commit.GetAuthor().GetName(),
-			commit.GetAuthor().GetLogin(),
-		)
-	}
+	return commits
 }
 
-func GetCommit(owner string, repo string, sha string) {
+func GetCommitFiles(owner string, repo string, sha string) []*github.CommitFile {
 	commit, _, err := githubClient.Repositories.GetCommit(
 		context.Background(),
 		owner,
@@ -123,14 +111,5 @@ func GetCommit(owner string, repo string, sha string) {
 		fmt.Println("Couldn't get the commit", err)
 	}
 
-	fmt.Println(commit.GetSHA())
-	for i, file := range commit.Files {
-		fmt.Println(
-			i,
-			file.GetFilename(),
-			file.GetBlobURL(),
-			file.GetContentsURL(),
-			file.GetRawURL(),
-		)
-	}
+	return commit.Files
 }

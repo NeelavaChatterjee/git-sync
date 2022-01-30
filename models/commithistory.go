@@ -15,7 +15,7 @@ type CommitHistory struct {
 	Message     string    `json:"message"`
 	AuthorName  string    `json:"author_name"`
 	AuthorEmail string    `json:"author_email"`
-	// Files       map[string]string `json:"files"`
+	// Files       map[string]interface `json:"files"`
 	CreatedAt time.Time `json:"created_at"`
 	TrackID   uint64    `json:"track_id"`
 	Track     Track
