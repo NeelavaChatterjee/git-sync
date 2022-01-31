@@ -10,7 +10,9 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/NeelavaChatterjee/git-sync/controllers"
 	"github.com/NeelavaChatterjee/git-sync/database"
+	"github.com/NeelavaChatterjee/git-sync/models"
 	"github.com/NeelavaChatterjee/git-sync/routes"
 	"github.com/NeelavaChatterjee/git-sync/utilities"
 	"github.com/joho/godotenv"
@@ -44,6 +46,24 @@ func main() {
 	// utilities.GetBranches("platform9", "pf9-kube")
 	// utilities.GetCommits("platform9", "pf9-kube")
 	// utilities.GetCommit("platform9", "pf9-kube", "897a05fabf282cdbdc5828b804cc216042172dd8")
+	// utilities.GetFileContents("platform9", "pf9-kube", "atherton", "README.md")
+	poll_interval, err := time.ParseDuration("1h")
+	if err != nil {
+		panic(err)
+	}
+	track_new := &models.Track{
+		Owner:        "platform9",
+		Repository:   "pf9-kube",
+		Branch:       "atherton",
+		PollInterval: poll_interval.String(),
+		IsTracked:    true,
+	}
+	controllers.CreateTrackEntry(track_new)
+	track, err := controllers.FindTrack("pf9-kube", "atherton")
+	if err != nil {
+		panic(err)
+	}
+	controllers.Poll(track)
 
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for the existing connections to finish - e.g. 15s or 1m")

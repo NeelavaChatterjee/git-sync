@@ -8,6 +8,7 @@ import (
 
 	"github.com/NeelavaChatterjee/git-sync/models"
 	"github.com/NeelavaChatterjee/git-sync/utilities"
+	"github.com/robfig/cron/v3"
 )
 
 //TODO
@@ -22,8 +23,7 @@ import (
 //   - fetch commit details
 //   - fetch all files
 
-func createNewDirectory(track *models.Track) {
-	path := filepath.Join(track.Owner, track.Repository, track.Branch)
+func createNewDirectory(path string) {
 	err := os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		fmt.Println(err)
@@ -32,41 +32,62 @@ func createNewDirectory(track *models.Track) {
 }
 
 func Poll(track *models.Track) {
+	// Create the directory
+	poll_time := time.Now().String()
+	path := filepath.Join("repos", track.Owner, track.Repository, track.Branch, poll_time)
+	createNewDirectory(path)
+
+	// TODO
 	// Start by fetching the commits
-	last_poll_log, err := FetchLastPollLog(track.ID)
-	if err != nil {
-		fmt.Println("Couldn't fetch last poll log from database.")
-		return
-	}
-	// since := time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)
-	since := last_poll_log.CreatedAt
+	// last_poll_log, err := FetchLastPollLog(track.ID)
+	// if err != nil {
+	// 	fmt.Println("Couldn't fetch last poll log from database.")
+	// 	return
+	// }
+	since := time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)
+	// since := last_poll_log.CreatedAt
 	until := time.Now()
 	commits := utilities.GetCommits(track.Owner, track.Repository, track.Branch, since, until)
-	// Fetch the filenames and urls of the commits
-	filemap := make(map[string]string)
+
 	for i, commit := range commits {
-		fmt.Println(
-			i,
-			commit.GetSHA(),
-			/* commit.Commit.GetMessage(), */
-			commit.Commit.GetAuthor().GetName(),
-			commit.GetAuthor().GetLogin(),
-		)
+		fmt.Println(i)
 		files := utilities.GetCommitFiles(track.Owner, track.Repository, commit.GetSHA())
 		for i, file := range files {
-			filemap[file.GetFilename()] = file.GetRawURL()
-			fmt.Println(
-				i,
-				file.GetFilename(),
-				file.GetBlobURL(),
-				file.GetContentsURL(),
-				file.GetRawURL(),
-			)
+			fmt.Println(i)
+			file_remote_dir := file.GetFilename()
+			file_content := utilities.GetFileContents(track.Owner, track.Repository, track.Branch, file_remote_dir)
+			file_local_path := filepath.Join(path, file_remote_dir)
+			file_local_dir := filepath.Dir(file_local_path)
+			createNewDirectory(file_local_dir)
+
+			f, err := os.Create(file_local_path)
+			if err != nil {
+				panic(err)
+			}
+
+			// incase its a 404 that is file was deleted we just skip the file
+			if file_content != nil {
+				f_content, err := file_content.GetContent()
+				if err != nil {
+					panic(err)
+				}
+				f.WriteString(f_content)
+			}
 		}
-
 	}
-	// Create the directory
-	createNewDirectory(track)
-	// Fetch all the files in the directory
+}
 
+// TODO store the id
+func SchedulePoll(track *models.Track, poll_interval string) {
+	utilities.Cron.AddFunc("@every "+poll_interval, func() {
+		Poll(track)
+	})
+}
+
+func RemoveScheduledPoll(id cron.EntryID) {
+	utilities.Cron.Remove(id)
+}
+
+func GetAllScheduledEntries() []cron.Entry {
+	return utilities.Cron.Entries()
 }

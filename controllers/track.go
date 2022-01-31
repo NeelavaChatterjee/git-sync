@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"time"
-
 	"github.com/NeelavaChatterjee/git-sync/database"
 	"github.com/NeelavaChatterjee/git-sync/models"
 )
@@ -50,6 +48,7 @@ func DeleteTrackById(track_id uint64) error {
 	return nil
 }
 
+// TODO
 // Updates is_tracking field
 func ToggleTrack(track *models.Track) (bool, error) {
 	track.IsTracked = !(track.IsTracked)
@@ -62,7 +61,8 @@ func ToggleTrack(track *models.Track) (bool, error) {
 	return track.IsTracked, nil
 }
 
-func UpdatePollInterval(track *models.Track, new_poll_interval time.Time) error {
+// TODO
+func UpdatePollInterval(track *models.Track, new_poll_interval string) error {
 	track.PollInterval = new_poll_interval
 	result := database.Db.Save(track)
 	if result.Error != nil {

@@ -12,7 +12,7 @@ type Track struct {
 	Owner        string    `json:"owner"`
 	Repository   string    `json:"repository"`
 	Branch       string    `json:"branch"`
-	PollInterval time.Time `json:"poll_interval"`
+	PollInterval string    `json:"poll_interval"`
 	IsTracked    bool      `json:"is_tracked"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_st"`

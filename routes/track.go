@@ -126,8 +126,12 @@ func UpdatePollInterval(w http.ResponseWriter, r *http.Request) {
 		log.Println("Couldn't find the requested tracks")
 		return
 	}
-	// TODO Fetch the time from the request
-	err = controllers.UpdatePollInterval(track, time.Time{})
+	// FIXME Fetch the time from the request
+	new_poll_interval, err := time.ParseDuration("1h")
+	if err != nil {
+		panic(err)
+	}
+	err = controllers.UpdatePollInterval(track, new_poll_interval.String())
 	if err != nil {
 		json.NewEncoder(w).Encode(err.Error())
 	}

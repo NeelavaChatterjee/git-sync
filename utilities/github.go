@@ -113,3 +113,20 @@ func GetCommitFiles(owner string, repo string, sha string) []*github.CommitFile 
 
 	return commit.Files
 }
+
+func GetFileContents(owner string, repo string, branch string, path string) *github.RepositoryContent {
+	file_content, _, _, err := githubClient.Repositories.GetContents(
+		context.Background(),
+		owner,
+		repo,
+		path,
+		&github.RepositoryContentGetOptions{
+			Ref: branch,
+		},
+	)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return file_content
+}
