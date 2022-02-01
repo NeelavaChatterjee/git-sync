@@ -3,11 +3,13 @@ package controllers
 import (
 	"github.com/NeelavaChatterjee/git-sync/database"
 	"github.com/NeelavaChatterjee/git-sync/models"
+	"github.com/NeelavaChatterjee/git-sync/utilities"
+	"github.com/robfig/cron/v3"
 )
 
-func FindTrack(repository string, branch string) (*models.Track, error) {
+func FindTrack(owner string, repository string, branch string) (*models.Track, error) {
 	var track models.Track
-	result := database.Db.Where(&models.Track{Repository: repository, Branch: branch}).First(&track)
+	result := database.Db.Where(&models.Track{Owner: owner, Repository: repository, Branch: branch}).First(&track)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -48,22 +50,38 @@ func DeleteTrackById(track_id uint64) error {
 	return nil
 }
 
-// TODO
-// Updates is_tracking field
-func ToggleTrack(track *models.Track) (bool, error) {
-	track.IsTracked = !(track.IsTracked)
+func UnTrack(track *models.Track) error {
+	track.IsTracked = false
 	result := database.Db.Save(track)
 	if result.Error != nil {
-		// Reverting it back incase it is not saved
-		track.IsTracked = !(track.IsTracked)
-		return track.IsTracked, result.Error
+		return result.Error
 	}
-	return track.IsTracked, nil
+	return nil
 }
 
-// TODO
+func ReTrack(track *models.Track) error {
+	track.IsTracked = true
+	result := database.Db.Save(track)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 func UpdatePollInterval(track *models.Track, new_poll_interval string) error {
 	track.PollInterval = new_poll_interval
+	utilities.Cron.Remove(track.CronID)
+	cron_entry_id := SchedulePoll(track)
+	track.CronID = cron_entry_id
+	result := database.Db.Save(track)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func UpdateCronEntryID(track *models.Track, new_entry_id cron.EntryID) error {
+	track.CronID = new_entry_id
 	result := database.Db.Save(track)
 	if result.Error != nil {
 		return result.Error

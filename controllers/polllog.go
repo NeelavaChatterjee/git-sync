@@ -16,7 +16,6 @@ func FetchAllPollLogs() ([]models.PollLogs, error) {
 }
 
 // Fetches filtered poll logs based on repo and branch from db
-// TODO Filters yet to be considered: time frame
 func FetchFilteredPollLogs(track_id uint64) ([]models.PollLogs, error) {
 	var filtered_poll_logs []models.PollLogs
 	result := database.Db.Where(&models.PollLogs{TrackID: track_id}).Find(&filtered_poll_logs)

@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/NeelavaChatterjee/git-sync/controllers"
 	"github.com/gorilla/mux"
@@ -23,12 +24,8 @@ func FilteredCommitHistory(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	w.Header().Set("Content-Type", "Application/json")
 	params := mux.Vars(r)
-	track, err := controllers.FindTrack(params["repository"], params["branch"])
-	if err != nil {
-		json.NewEncoder(w).Encode(&err)
-		return
-	}
-	filtered_poll_logs, err := controllers.FetchFilteredCommitHistory(track.ID)
+	track_id, err := strconv.Atoi(params["trackid"])
+	filtered_poll_logs, err := controllers.FetchFilteredCommitHistory(uint64(track_id))
 	if err != nil {
 		json.NewEncoder(w).Encode(&err)
 		return

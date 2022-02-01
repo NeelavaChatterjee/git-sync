@@ -11,18 +11,6 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-//TODO
-// use cron
-// do the actual polling (github)
-// schedule polling (cron)
-// check all the scheduled polls and their times (cron)
-// check all the scheduled polls and their times just for a repo and branch (can be combined with above) (cron)
-// stop a scheduled poll (cron)
-// actual polling
-//   - create directory
-//   - fetch commit details
-//   - fetch all files
-
 func createNewDirectory(path string) {
 	err := os.MkdirAll(path, os.ModePerm)
 	if err != nil {
@@ -37,19 +25,26 @@ func Poll(track *models.Track) {
 	path := filepath.Join("repos", track.Owner, track.Repository, track.Branch, poll_time)
 	createNewDirectory(path)
 
-	// TODO
-	// Start by fetching the commits
-	// last_poll_log, err := FetchLastPollLog(track.ID)
-	// if err != nil {
-	// 	fmt.Println("Couldn't fetch last poll log from database.")
-	// 	return
-	// }
-	since := time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)
-	// since := last_poll_log.CreatedAt
+	last_poll_log, err := FetchLastPollLog(track.ID)
+	if err != nil {
+		fmt.Println("Couldn't fetch last poll log from database.")
+	}
+	var since time.Time
+	if last_poll_log != nil {
+		since = last_poll_log.CreatedAt
+	} else {
+		// This is the fall back option if this is the first poll
+		since = time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)
+	}
+
 	until := time.Now()
+	// Fetching Commits
 	commits := utilities.GetCommits(track.Owner, track.Repository, track.Branch, since, until)
 
+	number_of_commits := 0
+	number_of_files := 0
 	for i, commit := range commits {
+		number_of_commits++
 		fmt.Println(i)
 		files := utilities.GetCommitFiles(track.Owner, track.Repository, commit.GetSHA())
 		for i, file := range files {
@@ -67,6 +62,7 @@ func Poll(track *models.Track) {
 
 			// incase its a 404 that is file was deleted we just skip the file
 			if file_content != nil {
+				number_of_files++
 				f_content, err := file_content.GetContent()
 				if err != nil {
 					panic(err)
@@ -74,18 +70,40 @@ func Poll(track *models.Track) {
 				f.WriteString(f_content)
 			}
 		}
+
+		commit_history_log := models.CommitHistory{
+			SHA:         commit.GetSHA(),
+			URL:         commit.GetURL(),
+			Date:        commit.GetAuthor().CreatedAt.Time,
+			Message:     *commit.Commit.Message,
+			AuthorName:  *commit.GetAuthor().Login,
+			AuthorEmail: *commit.GetAuthor().Email,
+			TrackID:     track.ID,
+		}
+		err := CreateNewCommitHistoryEntry(&commit_history_log)
+		if err != nil {
+			panic(err)
+		}
+	}
+	poll_log := models.PollLogs{
+		NumberOfFiles:   number_of_files,
+		NumberOfCommits: number_of_commits,
+		TrackID:         track.ID,
+	}
+
+	if err := CreatePollLog(&poll_log); err != nil {
+		panic(err)
 	}
 }
 
-// TODO store the id
-func SchedulePoll(track *models.Track, poll_interval string) {
-	utilities.Cron.AddFunc("@every "+poll_interval, func() {
+func SchedulePoll(track *models.Track) cron.EntryID {
+	entry_id, err := utilities.Cron.AddFunc("@every "+track.PollInterval, func() {
 		Poll(track)
 	})
-}
-
-func RemoveScheduledPoll(id cron.EntryID) {
-	utilities.Cron.Remove(id)
+	if err != nil {
+		panic(err)
+	}
+	return entry_id
 }
 
 func GetAllScheduledEntries() []cron.Entry {

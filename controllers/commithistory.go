@@ -16,7 +16,6 @@ func FetchAllCommitHistory() ([]models.CommitHistory, error) {
 }
 
 // Get a filtered commit history from db
-// TODO: Filters to be considered: repository, branch, time frame, author
 func FetchFilteredCommitHistory(track_id uint64) ([]models.CommitHistory, error) {
 	var filtered_commit_history []models.CommitHistory
 	result := database.Db.Where(&models.CommitHistory{TrackID: track_id}).Find(&filtered_commit_history)
