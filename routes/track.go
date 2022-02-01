@@ -163,8 +163,17 @@ func Retrack(w http.ResponseWriter, r *http.Request) {
 func UpdatePollInterval(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	track_id, err := strconv.Atoi(params["track_id"])
+
+	var reqData map[string]string
+	parseErr := json.NewDecoder(r.Body).Decode(&reqData)
+	if parseErr != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(parseErr.Error())
+		log.Println(parseErr)
+		return
+	}
+
+	track_id, err := strconv.Atoi(reqData["track_id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err.Error())
@@ -177,7 +186,7 @@ func UpdatePollInterval(w http.ResponseWriter, r *http.Request) {
 		log.Println("Couldn't find the requested tracks")
 		return
 	}
-	new_poll_interval, err := time.ParseDuration(track.PollInterval)
+	new_poll_interval, err := time.ParseDuration(reqData["new_poll_interval"])
 	if err != nil {
 		panic(err)
 	}

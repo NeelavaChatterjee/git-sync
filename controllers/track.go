@@ -35,6 +35,8 @@ func FetchAllTracked() (*[]models.Track, error) {
 }
 
 func CreateTrackEntry(track *models.Track) error {
+	cron_id := SchedulePoll(track)
+	track.CronID = cron_id
 	result := database.Db.Create(track)
 	if result.Error != nil {
 		return result.Error
@@ -51,6 +53,7 @@ func DeleteTrackById(track_id uint64) error {
 }
 
 func UnTrack(track *models.Track) error {
+	utilities.Cron.Remove(track.CronID)
 	track.IsTracked = false
 	result := database.Db.Save(track)
 	if result.Error != nil {
@@ -60,6 +63,7 @@ func UnTrack(track *models.Track) error {
 }
 
 func ReTrack(track *models.Track) error {
+	SchedulePoll(track)
 	track.IsTracked = true
 	result := database.Db.Save(track)
 	if result.Error != nil {
