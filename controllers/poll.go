@@ -39,18 +39,28 @@ func Poll(track *models.Track) {
 
 	until := time.Now()
 	// Fetching Commits
-	commits := utilities.GetCommits(track.Owner, track.Repository, track.Branch, since, until)
+	commits, err := utilities.GetCommits(track.Owner, track.Repository, track.Branch, since, until)
+	if err != nil {
+		fmt.Println("No commits found", err)
+		return
+	}
 
 	number_of_commits := 0
 	number_of_files := 0
 	for i, commit := range commits {
 		number_of_commits++
 		fmt.Println(i)
-		files := utilities.GetCommitFiles(track.Owner, track.Repository, commit.GetSHA())
+		files, err := utilities.GetCommitFiles(track.Owner, track.Repository, commit.GetSHA())
+		if err != nil {
+			fmt.Println("Couldn't fetch files", err)
+		}
 		for i, file := range files {
 			fmt.Println(i)
 			file_remote_dir := file.GetFilename()
-			file_content := utilities.GetFileContents(track.Owner, track.Repository, track.Branch, file_remote_dir)
+			file_content, err := utilities.GetFileContents(track.Owner, track.Repository, track.Branch, file_remote_dir)
+			if err != nil {
+				fmt.Println("Couldn't fetch file contents", err)
+			}
 			file_local_path := filepath.Join(path, file_remote_dir)
 			file_local_dir := filepath.Dir(file_local_path)
 			createNewDirectory(file_local_dir)
@@ -72,16 +82,15 @@ func Poll(track *models.Track) {
 		}
 
 		commit_history_log := models.CommitHistory{
-			SHA:         commit.GetSHA(),
-			URL:         commit.GetURL(),
-			Date:        commit.GetAuthor().CreatedAt.Time,
-			Message:     *commit.Commit.Message,
-			AuthorName:  *commit.GetAuthor().Login,
-			AuthorEmail: *commit.GetAuthor().Email,
-			TrackID:     track.ID,
+			SHA:        commit.GetSHA(),
+			URL:        commit.GetURL(),
+			Date:       *commit.GetCommit().GetAuthor().Date,
+			Message:    *commit.Commit.Message,
+			AuthorName: *commit.GetAuthor().Login,
+			TrackID:    track.ID,
 		}
-		err := CreateNewCommitHistoryEntry(&commit_history_log)
-		if err != nil {
+
+		if err := CreateNewCommitHistoryEntry(&commit_history_log); err != nil {
 			panic(err)
 		}
 	}

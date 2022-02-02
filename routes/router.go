@@ -6,8 +6,9 @@ import (
 
 func Router() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc("/manual-poll", TriggerManualPoll).Methods("GET")
-	router.HandleFunc("/stop-schedule-poll", StopScheduledPoll).Methods("GET")
+	router.HandleFunc("/manual-poll/{track_id}", TriggerManualPoll).Methods("GET")
+	router.HandleFunc("/stop-scheduled-poll/{track_cron_id}", StopScheduledPoll).Methods("GET")
+	router.HandleFunc("/re-schedule-poll/{track_id}", ReSchedulePoll).Methods("GET")
 
 	router.HandleFunc("/commit-history", AllCommitHistory).Methods("GET")
 	router.HandleFunc("/commit-history/{track_id}", FilteredCommitHistory).Methods("GET")
@@ -15,7 +16,7 @@ func Router() *mux.Router {
 	router.HandleFunc("/poll-log", AllPollLogs).Methods("GET")
 	router.HandleFunc("/poll-log/{track_id}", GetFilteredPollLogs).Methods("GET")
 
-	router.HandleFunc("/track", FindTrack).Methods("GET")
+	router.HandleFunc("/find-track", FindTrack).Methods("POST")
 	router.HandleFunc("/track/{track_id}", FindTrackByID).Methods("GET")
 	router.HandleFunc("/list-tracks", FetchAllTracked).Methods("GET")
 	router.HandleFunc("/track", CreateTrackEntry).Methods("POST")
