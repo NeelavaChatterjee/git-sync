@@ -45,6 +45,15 @@ func CreateTrackEntry(track *models.Track) error {
 }
 
 func DeleteTrackById(track_id uint64) error {
+	track, err := FindTrackByID(track_id)
+	if err != nil {
+		panic(err)
+	}
+	err = UnTrack(track)
+	if err != nil {
+		panic(err)
+	}
+
 	result := database.Db.Delete(&models.Track{}, track_id)
 	if result.Error != nil {
 		return result.Error
