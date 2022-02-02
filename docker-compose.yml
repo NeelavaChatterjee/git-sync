@@ -1,10 +1,20 @@
 version: '3.0'
 services:
-  database:
+  db:
     image: mysql
+    restart: always
     ports:
       - "3306:3306"
     environment:
       - MYSQL_ROOT_USER=root
       - MYSQL_ROOT_PASSWORD=1234
       - MYSQL_DATABASE=git_sync
+  # web:
+  #   build: .
+  #   restart: always
+  #   ports:
+  #     - 4000:4000
+  #   depends_on:
+  #     - db
+  #   links:
+  #     - db
