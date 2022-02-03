@@ -1,7 +1,8 @@
-version: '3.0'
+version: '3'
 services:
   db:
     image: mysql
+    container_name: mysql-db
     restart: always
     ports:
       - "3306:3306"
@@ -9,12 +10,20 @@ services:
       - MYSQL_ROOT_USER=root
       - MYSQL_ROOT_PASSWORD=1234
       - MYSQL_DATABASE=git_sync
-  # web:
-  #   build: .
-  #   restart: always
-  #   ports:
-  #     - 4000:4000
-  #   depends_on:
-  #     - db
-  #   links:
-  #     - db
+    networks:
+      - backend
+  web:
+    build: .
+    restart: always
+    container_name: git-sync
+    ports:
+      - 9000:4000
+    depends_on:
+      - db
+    links:
+      - db
+    networks:
+      - backend
+networks:
+  backend:
+    driver: bridge

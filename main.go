@@ -34,6 +34,7 @@ func main() {
 	log.SetOutput(f)
 	fmt.Println("Database is being initialized")
 
+	// Initialize Cron
 	utilities.Initialize()
 	utilities.Cron.Start()
 	defer utilities.Cron.Stop()
